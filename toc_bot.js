@@ -6,7 +6,12 @@ function clickButton(buttonText) {
   const button = Array.from(document.querySelectorAll("button")).find(
     (b) => b.textContent.trim() === buttonText
   );
-  if (button) button.click();
+  if (button) {
+    button.click();
+    console.log(`Clicked "${buttonText}"`);
+  } else {
+    console.warn(`Button "${buttonText}" not found.`);
+  }
 }
 
 function playBeep() {
@@ -26,7 +31,6 @@ function playBeep() {
 }
 
 async function handleCaptcha() {
-  // Detect captcha
   const captcha = Array.from(document.querySelectorAll("p.text-sm")).find((p) =>
     p.textContent.startsWith("To prevent")
   );
@@ -39,9 +43,12 @@ async function handleCaptcha() {
     if (navigator.vibrate) navigator.vibrate([500, 500, 500]);
 
     console.log("Waiting for you to solve the captcha...");
-    while (captcha && document.querySelector("p.text-sm")) {
-      await sleep(1000); // Wait until the captcha disappears
+    while (Array.from(document.querySelectorAll("p.text-sm")).some((p) =>
+      p.textContent.startsWith("To prevent")
+    )) {
+      await sleep(1000); // Wait for the captcha to be solved
     }
+
     console.log("Captcha solved! Resuming...");
     await sleep(2000); // Small delay before continuing
   }
@@ -50,26 +57,30 @@ async function handleCaptcha() {
 async function mainLoop() {
   console.log("Starting process...");
   while (true) {
+    // Click "MINE" button
     clickButton("MINE");
     console.log("Clicked MINE");
-    await sleep(2000);
+    await sleep(2000); // Wait 2 seconds before checking for "Got it"
 
     // Handle captcha if detected
     await handleCaptcha();
 
-    const gotIt = Array.from(document.querySelectorAll("p.text-sm")).find((p) =>
-      p.textContent.includes("You have started")
-    );
-    if (gotIt) {
-      clickButton("Got it");
-      console.log("Clicked Got it");
-      await sleep(57000); // Wait 57 seconds (almost 1 block)
-      clickButton("Mine more!");
-      console.log("Clicked Mine more!");
-    }
+    // Click "Got it" button
+    clickButton("Got it");
+    console.log("Clicked Got it");
 
-    await sleep(2000); // Slight delay before looping
+    // Wait 60 seconds for the block to mine
+    console.log("Waiting for 60 seconds to mine the block...");
+    await sleep(60000);
+
+    // Click "Mine more!" button
+    clickButton("Mine more!");
+    console.log("Clicked Mine more!");
+
+    // Wait a short delay before restarting the loop
+    await sleep(2000);
   }
 }
 
 mainLoop();
+
