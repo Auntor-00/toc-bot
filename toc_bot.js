@@ -1,21 +1,3 @@
-let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-function playBeep() {
-  console.log("Playing beep...");
-  const oscillator = audioContext.createOscillator();
-  const gainNode = audioContext.createGain();
-
-  oscillator.type = "square";
-  oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
-  gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
-
-  oscillator.connect(gainNode);
-  gainNode.connect(audioContext.destination);
-
-  oscillator.start();
-  oscillator.stop(audioContext.currentTime + 1);
-}
-
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -25,13 +7,28 @@ function clickButton(buttonText) {
     (b) => b.textContent.trim() === buttonText
   );
   if (button) {
-    console.log(`Clicking button: ${buttonText}`);
     button.click();
+    console.log(`Clicked "${buttonText}"`);
   } else {
-    console.warn(`Button not found: ${buttonText}`);
+    console.warn(`Button "${buttonText}" not found.`);
   }
 }
 
+function playBeep() {
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = context.createOscillator();
+  const gainNode = context.createGain();
+
+  oscillator.type = "square";
+  oscillator.frequency.setValueAtTime(1000, context.currentTime);
+  gainNode.gain.setValueAtTime(0.5, context.currentTime);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(context.destination);
+
+  oscillator.start();
+  oscillator.stop(context.currentTime + 1);
+}
 async function handleCaptcha() {
   const captcha = Array.from(document.querySelectorAll("p.text-sm")).find((p) =>
     p.textContent.startsWith("To prevent")
