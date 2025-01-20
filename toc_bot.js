@@ -1,127 +1,75 @@
-function t(t) {
-  return new Promise((e) => setTimeout(e, t));
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function e(t) {
-  const e = Array.from(document.querySelectorAll("button")).find((e) => e.textContent.trim() === t);
-  e && e.click();
+function clickButton(buttonText) {
+  const button = Array.from(document.querySelectorAll("button")).find(
+    (b) => b.textContent.trim() === buttonText
+  );
+  if (button) button.click();
 }
 
-function o() {
-  const t = new(window.AudioContext || window.webkitAudioContext),
-        e = t.createOscillator(),
-        o = t.createGain();
-  e.type = "square";
-  e.frequency.setValueAtTime(440, t.currentTime);
-  o.gain.setValueAtTime(0.1, t.currentTime);
-  e.connect(o);
-  o.connect(t.destination);
-  e.start();
-  e.stop(t.currentTime + 0.75);
+function playBeep() {
+  const context = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = context.createOscillator();
+  const gainNode = context.createGain();
+
+  oscillator.type = "square";
+  oscillator.frequency.setValueAtTime(1000, context.currentTime);
+  gainNode.gain.setValueAtTime(0.5, context.currentTime);
+
+  oscillator.connect(gainNode);
+  gainNode.connect(context.destination);
+
+  oscillator.start();
+  oscillator.stop(context.currentTime + 1);
 }
 
-async function n() {
-  const n = Array.from(document.querySelectorAll("p.text-sm")).find((t) => t.textContent.startsWith("To prevent"));
-  if (n) {
-    const r = n.textContent;
-    if (r.includes("result of the following calculation:")) {
-      console.error("Math Captcha Arrived.");
-      o();
-      await t(2000);
-      const n = Array.from(document.querySelectorAll("button")).find((t) => "Close" === t.querySelector("span")?.textContent.trim());
-      n && n.click();
-      console.log("Captcha Closed.");
-      await t(10000);
-      await e("MINE");
-      return false;
+async function handleCaptcha() {
+  // Detect captcha
+  const captcha = Array.from(document.querySelectorAll("p.text-sm")).find((p) =>
+    p.textContent.startsWith("To prevent")
+  );
+
+  if (captcha) {
+    console.error("Captcha detected!");
+
+    // Play beep sound and vibrate
+    playBeep();
+    if (navigator.vibrate) navigator.vibrate([500, 500, 500]);
+
+    console.log("Waiting for you to solve the captcha...");
+    while (captcha && document.querySelector("p.text-sm")) {
+      await sleep(1000); // Wait until the captcha disappears
     }
-    if (r.includes("How many stars do you see:")) {
-      console.error("Star captcha detected!");
-      if (Array.from(document.querySelectorAll("div.text-sm")).find((t) => t.textContent.startsWith("Verification failed."))) {
-        console.error("Captcha Failed!");
-        o();
-        await t(10000);
-        const n = Array.from(document.querySelectorAll("button")).find((t) => "Close" === t.querySelector("span")?.textContent.trim());
-        n && n.click();
-        console.log("Buggy Captcha Closed.");
-        await t(10000);
-        await e("MINE");
-        return false;
-      }
-
-      await t(2000);
-
-      // Check for the input field for stars
-      const inputField = document.querySelector("input[placeholder='result']");
-      if (inputField) {
-        const starCount = prompt("Enter the number of stars you see:", "5"); // Manual input for star captcha
-        if (starCount !== null) {
-          inputField.value = starCount;
-          inputField.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-      } else {
-        // If the input field is not there, use the up/down buttons
-        const upButton = Array.from(document.querySelectorAll("button")).find((btn) => btn.textContent.trim() === "Up");
-        const downButton = Array.from(document.querySelectorAll("button")).find((btn) => btn.textContent.trim() === "Down");
-
-        if (upButton && downButton) {
-          // We need to simulate button clicks based on the star count
-          let starCount = prompt("Enter the number of stars you see:", "5");
-          starCount = parseInt(starCount, 10);
-          while (starCount > 0) {
-            upButton.click();
-            starCount--;
-            await t(500); // Delay between clicks
-          }
-          while (starCount < 0) {
-            downButton.click();
-            starCount++;
-            await t(500); // Delay between clicks
-          }
-        }
-      }
-
-      await e("Verify");
-      console.log("Star Captcha solved!");
-      await t(1500);
-      return true;
-    }
+    console.log("Captcha solved! Resuming...");
+    await sleep(2000); // Small delay before continuing
   }
-  return false;
 }
 
-async function main() {
+async function mainLoop() {
   console.log("Starting process...");
   while (true) {
-    await e("MINE");
-    console.log("Pressed MINE");
-    await t(2000);
-    const o = Array.from(document.querySelectorAll("p.text-sm")).find((t) => t.textContent.includes("You're temporarily blocked"));
-    if (o) {
-      console.error("You are blocked!");
-      const e = o.textContent.match(/(\d+)\s+minutes/);
-      if (!e) return console.warn("Something went wrong. Exiting..."), false;
-      const o = parseInt(e[1], 10);
-      console.log(`Sleeping for ${o} minute(s)...`);
-      await t(60 * o * 1000);
-      const n = Array.from(document.querySelectorAll("button")).find((t) => "Close" === t.querySelector("span")?.textContent.trim());
-      n && n.click();
-      console.log("Captcha Closed.");
-      console.log("Block time passed. Retrying...");
+    clickButton("MINE");
+    console.log("Clicked MINE");
+    await sleep(2000);
+
+    // Handle captcha if detected
+    await handleCaptcha();
+
+    const gotIt = Array.from(document.querySelectorAll("p.text-sm")).find((p) =>
+      p.textContent.includes("You have started")
+    );
+    if (gotIt) {
+      clickButton("Got it");
+      console.log("Clicked Got it");
+      await sleep(57000); // Wait 57 seconds (almost 1 block)
+      clickButton("Mine more!");
+      console.log("Clicked Mine more!");
     }
-    if (Array.from(document.querySelectorAll("p.text-sm")).find((t) => t.textContent.includes("You have started"))) {
-      await e("Got it");
-      console.log("Pressed Got it");
-      await t(57000);
-      await e("Mine more!");
-      console.log("TOC Claimed");
-      await t(1500);
-    } else {
-      await n();
-    }
+
+    await sleep(2000); // Slight delay before looping
   }
 }
 
-main();
-
-
+mainLoop();
