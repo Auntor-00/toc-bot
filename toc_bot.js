@@ -6,10 +6,16 @@ function clickButton(buttonText) {
   const button = Array.from(document.querySelectorAll("button")).find(
     (b) => b.textContent.trim() === buttonText
   );
-  if (button) button.click();
+  if (button) {
+    console.log(`Clicking button: ${buttonText}`);
+    button.click();
+  } else {
+    console.warn(`Button not found: ${buttonText}`);
+  }
 }
 
 function playBeep() {
+  console.log("Playing beep...");
   const context = new (window.AudioContext || window.webkitAudioContext)();
   const oscillator = context.createOscillator();
   const gainNode = context.createGain();
@@ -26,7 +32,6 @@ function playBeep() {
 }
 
 async function handleCaptcha() {
-  // Detect captcha
   const captcha = Array.from(document.querySelectorAll("p.text-sm")).find((p) =>
     p.textContent.startsWith("To prevent")
   );
@@ -34,16 +39,15 @@ async function handleCaptcha() {
   if (captcha) {
     console.error("Captcha detected!");
 
-    // Play beep sound and vibrate
     playBeep();
     if (navigator.vibrate) navigator.vibrate([500, 500, 500]);
 
-    console.log("Waiting for you to solve the captcha...");
-    while (captcha && document.querySelector("p.text-sm")) {
-      await sleep(1000); // Wait until the captcha disappears
+    console.log("Waiting for captcha to be solved manually...");
+    while (document.querySelector("p.text-sm")) {
+      await sleep(1000); // Wait for captcha to disappear
     }
-    console.log("Captcha solved! Resuming...");
-    await sleep(2000); // Small delay before continuing
+    console.log("Captcha solved! Resuming process...");
+    await sleep(2000);
   }
 }
 
@@ -51,17 +55,15 @@ async function mainLoop() {
   console.log("Starting process...");
 
   while (true) {
-    // Click "MINE" button
+    console.log("Attempting to click 'MINE'...");
     clickButton("MINE");
-    console.log("Clicked MINE");
 
     const mineStartTime = Date.now();
+    await sleep(2000);
 
-    await sleep(2000); // Wait 2 seconds for "Got it" button to appear
+    console.log("Attempting to click 'Got it'...");
     clickButton("Got it");
-    console.log("Clicked Got it");
 
-    // Wait for remaining time to complete 60 seconds
     const elapsedTime = Date.now() - mineStartTime;
     const remainingTime = 60000 - elapsedTime;
 
@@ -70,12 +72,11 @@ async function mainLoop() {
       await sleep(remainingTime);
     }
 
-    // Click "Mine more!" button
+    console.log("Attempting to click 'Mine more!'...");
     clickButton("Mine more!");
-    console.log("Clicked Mine more!");
-    await sleep(2000); // Short delay to stabilize the process
 
-    // Handle captcha if it appears
+    await sleep(2000);
+    console.log("Handling captcha if necessary...");
     await handleCaptcha();
   }
 }
