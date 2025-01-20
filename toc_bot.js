@@ -30,46 +30,18 @@ function playBeep() {
   oscillator.stop(context.currentTime + 1);
 }
 
-async function handleCaptcha() {
-  const captcha = Array.from(document.querySelectorAll("p.text-sm")).find((p) =>
-    p.textContent.startsWith("To prevent")
-  );
-
-  if (captcha) {
-    console.error("Captcha detected!");
-
-    // Play beep sound and vibrate
-    playBeep();
-    if (navigator.vibrate) navigator.vibrate([500, 500, 500]);
-
-    console.log("Waiting for you to solve the captcha...");
-    while (Array.from(document.querySelectorAll("p.text-sm")).some((p) =>
-      p.textContent.startsWith("To prevent")
-    )) {
-      await sleep(1000); // Wait for the captcha to be solved
-    }
-
-    console.log("Captcha solved! Resuming...");
-    await sleep(2000); // Small delay before continuing
-  }
-}
-
 async function mainLoop() {
   console.log("Starting process...");
+  let mineStartTime = 0;
+
   while (true) {
     // Click "MINE" button
     clickButton("MINE");
     console.log("Clicked MINE");
+    mineStartTime = Date.now();
+    await sleep(2000); // Wait 2 seconds for the action to register
 
-    // Record the time the "MINE" button was clicked
-    const mineStartTime = Date.now();
-
-    await sleep(2000); // Wait 2 seconds before checking for "Got it"
-
-    // Handle captcha if detected
-    await handleCaptcha();
-
-    // Click "Got it" button
+    // Click "Got it" button after clicking "MINE"
     clickButton("Got it");
     console.log("Clicked Got it");
 
@@ -84,11 +56,6 @@ async function mainLoop() {
     // Click "Mine more!" button
     clickButton("Mine more!");
     console.log("Clicked Mine more!");
-
-    // Short delay before restarting the loop
-    await sleep(2000);
   }
 }
-
-mainLoop();
 
