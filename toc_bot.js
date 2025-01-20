@@ -60,6 +60,10 @@ async function mainLoop() {
     // Click "MINE" button
     clickButton("MINE");
     console.log("Clicked MINE");
+
+    // Record the time the "MINE" button was clicked
+    const mineStartTime = Date.now();
+
     await sleep(2000); // Wait 2 seconds before checking for "Got it"
 
     // Handle captcha if detected
@@ -69,15 +73,19 @@ async function mainLoop() {
     clickButton("Got it");
     console.log("Clicked Got it");
 
-    // Wait 60 seconds for the block to mine
-    console.log("Waiting for 60 seconds to mine the block...");
-    await sleep(60000);
+    // Calculate remaining time to complete 60 seconds since "MINE" was clicked
+    const elapsedTime = Date.now() - mineStartTime;
+    const remainingTime = Math.max(60000 - elapsedTime, 0);
+
+    // Wait for the remaining time
+    console.log(`Waiting for ${remainingTime / 1000} seconds...`);
+    await sleep(remainingTime);
 
     // Click "Mine more!" button
     clickButton("Mine more!");
     console.log("Clicked Mine more!");
 
-    // Wait a short delay before restarting the loop
+    // Short delay before restarting the loop
     await sleep(2000);
   }
 }
