@@ -54,7 +54,7 @@ async function handleCaptcha() {
     // Retry clicking 'Got it' button for a few attempts
     for (let i = 0; i < 5; i++) {
       clickButton("Got it");
-      await sleep(2000); // Retry every 2 seconds for up to 10 seconds
+      await sleep(1000); // Retry every 2 seconds for up to 10 seconds
     }
     console.log("Captcha handling complete. Resuming process...");
   }
@@ -86,7 +86,7 @@ async function mainLoop() {
     console.log("Attempting to click 'Mine more!'...");
     clickButton("Mine more!");
 
-    await sleep(2000);
+    await sleep(1000);
     console.log("Handling captcha if necessary...");
     await handleCaptcha();
   }
