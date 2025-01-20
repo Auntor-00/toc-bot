@@ -75,7 +75,7 @@ async function mainLoop() {
     console.log("Attempting to click 'Mine more!'...");
     clickButton("Mine more!");
 
-    await sleep(2000);
+    await sleep(1000);
     console.log("Handling captcha if necessary...");
     await handleCaptcha();
   }
